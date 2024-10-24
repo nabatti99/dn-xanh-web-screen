@@ -1,0 +1,30 @@
+.container {
+    background-color: var(--accent-2);
+    border-right: 1px solid var(--accent-7);
+    padding: var(--space-6) !important;
+
+    .nav-link {
+        text-decoration: none;
+
+        .text {
+            text-align: center;
+            font-weight: 600;
+            color: var(--gray-9);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-2);
+
+            &:hover {
+                color: var(--gray-12);
+            }
+
+            &.active {
+                color: var(--accent-11);
+                background-color: var(--accent-3);
+
+                &:hover {
+                    color: var(--accent-12);
+                }
+            }
+        }
+    }
+}

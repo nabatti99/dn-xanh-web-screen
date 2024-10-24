@@ -1,0 +1,26 @@
+.bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(228, 255, 230, 0.908);
+}
+
+.status-bar-container {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    margin: 0 auto;
+    margin-bottom: calc(-1 * var(--space-6));
+}
