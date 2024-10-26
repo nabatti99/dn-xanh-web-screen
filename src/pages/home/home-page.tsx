@@ -10,66 +10,52 @@ import styles from "./style.module.scss";
 import { useAppDispatch, useAppSelector } from "@store";
 import { setEmbeddedSystemState, updateSensorsData } from "./redux";
 import { StatusBar } from "./components/status-bar";
-import { WasteType } from "./constants";
+import { EmbeddedSystemState, WasteType } from "./constants";
+import { BigQr } from "./components/big-qr";
+
+enum MessageKey {
+    DOOR_OPENED = "DOOR_OPENED",
+    PROCESSING = "PROCESSING",
+}
+
+const messageMap = {
+    [MessageKey.DOOR_OPENED]: "Hãy phân loại rác đúng cách!",
+    [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
+};
 
 export const HomePage = ({}: HomePageProps) => {
-    const dispatch = useAppDispatch();
-    const { height, isDoorOpened } = useAppSelector((state) => state.home);
+    const homeState = useAppSelector((state) => state.home);
 
-    const [appWebsocket, setAppWebsocket] = useState<AppWebsocket>();
-    const [message, setMessage] = useState<string>();
-
-    const handleWebsocketMessage = (data: Record<string, any>) => {
-        switch (data.type) {
-            case "SENSORS_DATA":
-                dispatch(
-                    updateSensorsData({
-                        isDoorOpened: Number(data["isDoorOpened"]) === 1,
-                        height: data["height"],
-                    })
-                );
-                break;
-
-            case "SET_STATE":
-                dispatch(setEmbeddedSystemState(data["state"]));
-                break;
-
-            default:
-                break;
-        }
-    };
+    const [messageKey, setMessageKey] = useState<MessageKey>();
+    const [qrMessage, setQrMessage] = useState<string>();
 
     useEffect(() => {
-        if (appWebsocket) return;
+        let newMessageKey: MessageKey | undefined = undefined;
+        let newQrMessage: string | undefined = undefined;
 
-        new AppWebsocket(
-            "RecycleEmbeddedSystem",
-            "ws://192.168.137.153/ws",
-            (event) => {
-                console.log("Connected", event);
-                setMessage("Connected");
-            },
-            (event) => {
-                console.log("Message", event);
-                handleWebsocketMessage(JSON.parse(event.data));
-            },
-            (event) => {
-                console.log("Close", event);
-                setAppWebsocket(undefined);
-            },
-            (event) => {
-                console.log("Error", event);
+        Object.values(homeState).forEach((state) => {
+            switch (state.embeddedSystemState) {
+                case EmbeddedSystemState.OPENING_DOOR:
+                    newMessageKey = MessageKey.DOOR_OPENED;
+                    break;
+
+                case EmbeddedSystemState.COLLECTING_DATA:
+                case EmbeddedSystemState.SERVER_PROCESSING:
+                    newMessageKey = MessageKey.PROCESSING;
+                    break;
+
+                case EmbeddedSystemState.CLAIM_REWARD:
+                    newQrMessage = "dQw4w9WgXcQ";
+                    break;
+
+                default:
+                    break;
             }
-        );
+        });
 
-        return () => {
-            AppWebsocket.cleanUp();
-        };
-    }, [appWebsocket]);
-
-    const handleMessageFinished = () => {
-        setMessage(undefined);
-    };
+        setMessageKey(newMessageKey);
+        setQrMessage(newQrMessage);
+    }, [homeState]);
 
     return (
         <>
@@ -77,13 +63,21 @@ export const HomePage = ({}: HomePageProps) => {
                 <Image src="https://houserentaldanang.com/wp-content/uploads/2023/09/How-to-Get-to-Danang-from-Singapore-1240x720.jpg" alt="bg" className={styles["bg-image"]} />
                 <Box className={styles["overlay"]} />
 
+                <Box asChild className={styles["video"]}>
+                    <video autoPlay loop muted className={styles["video"]}>
+                        <source src="/bg-video.mp4" type="video/mp4" />
+                    </video>
+                </Box>
+
                 <Flex justify="center" gap="8" className={styles["status-bar-container"]}>
-                    <StatusBar wasteType={WasteType.RECYCLABLE} />
-                    <StatusBar wasteType={WasteType.ORGANIC} />
-                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} />
+                    <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.20" />
+                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" />
+                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.20" />
                 </Flex>
 
-                {/* {message && <BigMessage position="absolute" top="0" left="0" message={message} onFinish={handleMessageFinished} />} */}
+                {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}
+                {/* {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />} */}
+                <BigQr position="absolute" top="0" left="0" qrMessage={"12312312"} />
             </Flex>
 
             <Seo title="Home" />

@@ -26,16 +26,26 @@
 
     .title {
         color: var(--cs-color);
+        display: block;
+        background-color: rgb(238, 254, 239);
+        padding: var(--space-2) var(--space-4);
+        padding-bottom: 0px;
+        margin-bottom: -8px;
+        border-top-left-radius: var(--radius-3);
+        border-top-right-radius: var(--radius-3);
+        border: 2px solid var(--cs-color);
+        border-bottom: none;
+        z-index: 0;
     }
 
     .container {
         border: 2px solid var(--cs-color);
-        padding-bottom: var(--space-9);
+        padding-bottom: 100px;
         padding-top: var(--space-4);
         padding-left: var(--space-4);
         padding-right: var(--space-4);
         border-radius: var(--radius-5);
-        background-color: rgba(238, 254, 239, 0.908);
+        background-color: rgb(238, 254, 239);
         min-width: 200px;
     }
 }

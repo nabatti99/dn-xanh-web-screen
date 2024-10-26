@@ -1,12 +1,24 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HomeState } from "./type";
 import { updateSensorsDataCase, setEmbeddedSystemStateCase } from "./home.reducers";
-import { EmbeddedSystemState } from "../constants";
+import { EmbeddedSystemState, WasteType } from "../constants";
 
 const initialState: HomeState = {
-    isDoorOpened: false,
-    height: 0,
-    embeddedSystemState: EmbeddedSystemState.IDLE,
+    [WasteType.RECYCLABLE]: {
+        isDoorOpened: false,
+        height: 0,
+        embeddedSystemState: EmbeddedSystemState.IDLE,
+    },
+    [WasteType.ORGANIC]: {
+        isDoorOpened: false,
+        height: 0,
+        embeddedSystemState: EmbeddedSystemState.IDLE,
+    },
+    [WasteType.NON_RECYCLABLE]: {
+        isDoorOpened: false,
+        height: 0,
+        embeddedSystemState: EmbeddedSystemState.IDLE,
+    },
 };
 
 // Create redux slice

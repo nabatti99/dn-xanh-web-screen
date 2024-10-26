@@ -3,12 +3,73 @@ import { Badge, Flex, Section, Text } from "@radix-ui/themes";
 import cls from "classnames";
 import { StatusBarProps } from "./type";
 import { EmbeddedSystemState, WasteType } from "@pages/home/constants";
-import { useAppSelector } from "@store";
+import { useAppDispatch, useAppSelector } from "@store";
 
 import styles from "./style.module.scss";
+import { AppWebsocket } from "@api/websocket/app-websocket";
+import { useEffect, useState } from "react";
+import { setEmbeddedSystemState, updateSensorsData } from "@pages/home/redux";
 
-export const StatusBar = ({ wasteType, className, ...props }: StatusBarProps) => {
-    const { embeddedSystemState, height, isDoorOpened } = useAppSelector((state) => state.home);
+export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: StatusBarProps) => {
+    const dispatch = useAppDispatch();
+
+    const [appWebsocket, setAppWebsocket] = useState<AppWebsocket>();
+    const { embeddedSystemState, height, isDoorOpened } = useAppSelector((state) => state.home[wasteType]);
+
+    const handleWebsocketMessage = (data: Record<string, any>) => {
+        switch (data.type) {
+            case "SENSORS_DATA":
+                dispatch(
+                    updateSensorsData({
+                        wasteType,
+                        data: {
+                            isDoorOpened: Number(data["isDoorOpened"]) === 1,
+                            height: Number(data["height"]),
+                        },
+                    })
+                );
+                break;
+
+            case "SET_STATE":
+                dispatch(
+                    setEmbeddedSystemState({
+                        wasteType,
+                        embeddedSystemState: data["state"],
+                    })
+                );
+                break;
+
+            default:
+                break;
+        }
+    };
+
+    useEffect(() => {
+        if (appWebsocket) return;
+
+        new AppWebsocket(
+            "RecycleEmbeddedSystem",
+            `ws://${embeddedSystemIP}/ws`,
+            (event) => {
+                console.log("Connected", event);
+            },
+            (event) => {
+                console.log("Message", event);
+                handleWebsocketMessage(JSON.parse(event.data));
+            },
+            (event) => {
+                console.log("Close", event);
+                setAppWebsocket(undefined);
+            },
+            (event) => {
+                console.log("Error", event);
+            }
+        );
+
+        return () => {
+            AppWebsocket.cleanUp();
+        };
+    }, [appWebsocket]);
 
     const renderStatus = () => {
         switch (embeddedSystemState) {
@@ -64,35 +125,41 @@ export const StatusBar = ({ wasteType, className, ...props }: StatusBarProps) =>
     const wasteNameMap: Record<WasteType, string> = {
         [WasteType.RECYCLABLE]: "RÁC TÁI CHẾ",
         [WasteType.ORGANIC]: "RÁC HỮU CƠ",
-        [WasteType.NON_RECYCLABLE]: "RÁC KHÔNG TÁI CHẾ",
+        [WasteType.NON_RECYCLABLE]: "RÁC VÔ CƠ",
     };
 
     return (
-        <Section position="relative" className={cls(styles["embedded-system-status"], wasteStyleMap[wasteType], styles["active"], className)} {...props}>
+        <Section
+            position="relative"
+            className={cls(styles["embedded-system-status"], wasteStyleMap[wasteType], embeddedSystemState !== EmbeddedSystemState.IDLE && styles["active"], className)}
+            {...props}
+        >
             <Flex direction="column" gap="2">
                 {height < 20 && (
-                    <Badge color="red" className={styles["badge"]}>
+                    <Badge color="red" variant="solid" className={styles["badge"]}>
                         Đã Đầy
                     </Badge>
                 )}
 
-                <Text size="1" color="green" align="center" className={styles["title"]}>
-                    {wasteNameMap[wasteType]}
-                </Text>
+                <Flex direction="column" align="center">
+                    <Text size="1" color="green" align="center" className={styles["title"]}>
+                        {wasteNameMap[wasteType]}
+                    </Text>
 
-                <Flex direction="column" justify="center" align="center" gap="4" className={styles["container"]}>
-                    <Flex justify="center" align="center" gap="2">
-                        {renderStatus()}
-                    </Flex>
+                    <Flex direction="column" justify="center" align="center" gap="4" className={styles["container"]}>
+                        <Flex justify="center" align="center" gap="2">
+                            {renderStatus()}
+                        </Flex>
 
-                    <Flex justify="center" align="center" gap="2">
-                        <Icon ri="ri-expand-height-fill" />
-                        <Text>{height}cm</Text>
-                    </Flex>
+                        <Flex justify="center" align="center" gap="2">
+                            <Icon ri="ri-expand-height-fill" />
+                            <Text>{height}cm</Text>
+                        </Flex>
 
-                    <Flex justify="center" align="center" gap="3">
-                        <Icon ri="ri-door-open-fill" />
-                        <Text>{isDoorOpened ? "Mở cửa" : "Đóng cửa"}</Text>
+                        <Flex justify="center" align="center" gap="3">
+                            <Icon ri="ri-door-open-fill" />
+                            <Text>{isDoorOpened ? "Mở cửa" : "Đóng cửa"}</Text>
+                        </Flex>
                     </Flex>
                 </Flex>
             </Flex>
