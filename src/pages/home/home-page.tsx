@@ -1,17 +1,17 @@
-import { AppWebsocket } from "@api/websocket/app-websocket";
+import { Image } from "@components";
 import { Seo } from "@global/components";
-import { Box, Container, Flex, Section, Text } from "@radix-ui/themes";
+import { Box, Flex } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
-import { HomePageProps } from "./type";
 import { BigMessage } from "./components";
-import { Icon, Image } from "@components";
-
-import styles from "./style.module.scss";
+import { HomePageProps } from "./type";
 import { useAppDispatch, useAppSelector } from "@store";
-import { setEmbeddedSystemState, updateSensorsData } from "./redux";
+import { BigQr } from "./components/big-qr";
 import { StatusBar } from "./components/status-bar";
 import { EmbeddedSystemState, WasteType } from "./constants";
-import { BigQr } from "./components/big-qr";
+
+import styles from "./style.module.scss";
+import { ErrorMessage } from "./components/error-message";
+import { setErrorMessage } from "./redux";
 
 enum MessageKey {
     DOOR_OPENED = "DOOR_OPENED",
@@ -24,7 +24,8 @@ const messageMap = {
 };
 
 export const HomePage = ({}: HomePageProps) => {
-    const homeState = useAppSelector((state) => state.home);
+    const dispatch = useAppDispatch();
+    const { embeddedSystemData, errorMessage } = useAppSelector((state) => state.home);
 
     const [messageKey, setMessageKey] = useState<MessageKey>();
     const [qrMessage, setQrMessage] = useState<string>();
@@ -33,7 +34,7 @@ export const HomePage = ({}: HomePageProps) => {
         let newMessageKey: MessageKey | undefined = undefined;
         let newQrMessage: string | undefined = undefined;
 
-        Object.values(homeState).forEach((state) => {
+        Object.values(embeddedSystemData).forEach((state) => {
             switch (state.embeddedSystemState) {
                 case EmbeddedSystemState.OPENING_DOOR:
                     newMessageKey = MessageKey.DOOR_OPENED;
@@ -55,7 +56,17 @@ export const HomePage = ({}: HomePageProps) => {
 
         setMessageKey(newMessageKey);
         setQrMessage(newQrMessage);
-    }, [homeState]);
+    }, [embeddedSystemData]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            dispatch(setErrorMessage({ errorMessage: "" }));
+        }, 5000);
+
+        return () => clearTimeout(timeoutId);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [errorMessage]);
 
     return (
         <>
@@ -69,15 +80,16 @@ export const HomePage = ({}: HomePageProps) => {
                     </video>
                 </Box>
 
-                <Flex justify="center" gap="8" className={styles["status-bar-container"]}>
+                <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
                     <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.20" />
                     <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" />
                     <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.20" />
                 </Flex>
 
                 {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}
-                {/* {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />} */}
-                <BigQr position="absolute" top="0" left="0" qrMessage={"12312312"} />
+                {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />}
+                {errorMessage && <ErrorMessage position="absolute" top="0" left="0" message={errorMessage} />}
+                {/* <BigQr position="absolute" top="0" left="0" qrMessage={"12312312"} /> */}
             </Flex>
 
             <Seo title="Home" />

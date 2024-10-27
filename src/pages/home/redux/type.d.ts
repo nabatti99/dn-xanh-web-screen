@@ -6,4 +6,7 @@ export type EmbeddedSystemData = {
     embeddedSystemState: EmbeddedSystemState;
 };
 
-export type HomeState = Record<WasteType, EmbeddedSystemData>;
+export type HomeState = {
+    embeddedSystemData: Record<WasteType, EmbeddedSystemData>;
+    errorMessage: string;
+};

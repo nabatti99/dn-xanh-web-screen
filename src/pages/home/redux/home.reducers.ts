@@ -9,8 +9,11 @@ export const updateSensorsDataCase: CaseReducer<
         data: Pick<EmbeddedSystemData, "isDoorOpened" | "height">;
     }>
 > = (state, action) => {
-    state[action.payload.wasteType].isDoorOpened = action.payload.data.isDoorOpened;
-    state[action.payload.wasteType].height = action.payload.data.height;
+    state.embeddedSystemData[action.payload.wasteType] = {
+        ...state.embeddedSystemData[action.payload.wasteType],
+        isDoorOpened: action.payload.data.isDoorOpened,
+        height: action.payload.data.height,
+    };
 };
 
 export const setEmbeddedSystemStateCase: CaseReducer<
@@ -20,5 +23,17 @@ export const setEmbeddedSystemStateCase: CaseReducer<
         embeddedSystemState: EmbeddedSystemData["embeddedSystemState"];
     }>
 > = (state, action) => {
-    state[action.payload.wasteType].embeddedSystemState = action.payload.embeddedSystemState;
+    state.embeddedSystemData[action.payload.wasteType] = {
+        ...state.embeddedSystemData[action.payload.wasteType],
+        embeddedSystemState: action.payload.embeddedSystemState,
+    };
+};
+
+export const setErrorMessageCase: CaseReducer<
+    HomeState,
+    PayloadAction<{
+        errorMessage: string;
+    }>
+> = (state, action) => {
+    state.errorMessage = action.payload.errorMessage;
 };
