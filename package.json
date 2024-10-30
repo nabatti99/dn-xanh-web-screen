@@ -46,7 +46,7 @@
         "react-app-rewired": "^2.2.1"
     },
     "scripts": {
-        "start": "cp dev.env .env && PORT=3000 && react-app-rewired start",
+        "start": "cp dev.env .env && PORT=3050 && react-app-rewired start",
         "build": "cp production.env .env && react-app-rewired build",
         "eject": "react-scripts eject",
         "prepare": "husky install",

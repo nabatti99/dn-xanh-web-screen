@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HomeState } from "./type";
-import { updateSensorsDataCase, setEmbeddedSystemStateCase, setErrorMessageCase } from "./home.reducers";
+import { updateSensorsDataCase, setEmbeddedSystemStateCase, setErrorMessageCase, setQrDataCase, setClassifyUserNameCase } from "./home.reducers";
 import { EmbeddedSystemState, WasteType } from "../constants";
 
 const initialState: HomeState = {
@@ -22,6 +22,8 @@ const initialState: HomeState = {
         },
     },
     errorMessage: "",
+    qrData: undefined,
+    classifyByUserName: "",
 };
 
 // Create redux slice
@@ -32,11 +34,13 @@ export const homeSlice = createSlice({
         updateSensorsData: updateSensorsDataCase,
         setEmbeddedSystemState: setEmbeddedSystemStateCase,
         setErrorMessage: setErrorMessageCase,
+        setQrData: setQrDataCase,
+        setClassifyUserName: setClassifyUserNameCase
     },
 });
 
 // Export actions
-export const { updateSensorsData, setEmbeddedSystemState, setErrorMessage } = homeSlice.actions;
+export const { updateSensorsData, setEmbeddedSystemState, setErrorMessage, setQrData, setClassifyUserName } = homeSlice.actions;
 
 // Export reducer
 export const homeReducer = homeSlice.reducer;

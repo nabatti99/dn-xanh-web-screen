@@ -10,6 +10,7 @@ export enum EmbeddedSystemState {
     COLLECTING_DATA = "COLLECTING_DATA",
     SERVER_PROCESSING = "SERVER_PROCESSING",
     CLAIM_REWARD = "CLAIM_REWARD",
+    FINISHING = "FINISHING",
 }
 
 export enum WasteType {

@@ -1,16 +1,22 @@
 import { Box, Flex, Heading } from "@radix-ui/themes";
 import { BigMessageProps } from "./type";
 import { Image } from "@components";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import cls from "classnames";
 
 import styles from "./style.module.scss";
 
 export const BigMessage = ({ message, onFinish = () => {}, className, ...props }: BigMessageProps) => {
+    const timeoutRef = useRef<NodeJS.Timeout>();
+
     useEffect(() => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
         const timeoutId = setTimeout(() => {
             onFinish();
-        }, 5000);
+        }, 10000);
+
+        timeoutRef.current = timeoutId;
 
         return () => clearTimeout(timeoutId);
 

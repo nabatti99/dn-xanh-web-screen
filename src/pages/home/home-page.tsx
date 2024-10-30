@@ -16,16 +16,20 @@ import { setErrorMessage } from "./redux";
 enum MessageKey {
     DOOR_OPENED = "DOOR_OPENED",
     PROCESSING = "PROCESSING",
+    FINISHING = "FINISHING",
 }
 
+const defaultMessageFinishing = "Cảm ơn {userName} đã phân loại rác!";
 const messageMap = {
     [MessageKey.DOOR_OPENED]: "Hãy phân loại rác đúng cách!",
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
+    [MessageKey.FINISHING]: defaultMessageFinishing
 };
 
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
-    const { embeddedSystemData, errorMessage } = useAppSelector((state) => state.home);
+    const { embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
+
 
     const [messageKey, setMessageKey] = useState<MessageKey>();
     const [qrMessage, setQrMessage] = useState<string>();
@@ -46,7 +50,17 @@ export const HomePage = ({}: HomePageProps) => {
                     break;
 
                 case EmbeddedSystemState.CLAIM_REWARD:
-                    newQrMessage = "dQw4w9WgXcQ";
+                    if (qrData) {
+                        if (qrData.isCorrect) newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`
+                        else dispatch(setErrorMessage({ errorMessage: "Hãy phân loại rác đúng cho lần sau nhé!" }));
+                    } else dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
+                    break;
+
+                case EmbeddedSystemState.FINISHING:
+                    if (classifyByUserName) {
+                        messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
+                        newMessageKey = MessageKey.FINISHING;
+                    } else dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
                     break;
 
                 default:
@@ -82,8 +96,8 @@ export const HomePage = ({}: HomePageProps) => {
 
                 <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
                     <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.20" />
-                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" />
-                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.20" />
+                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.30" />
+                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />
                 </Flex>
 
                 {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}

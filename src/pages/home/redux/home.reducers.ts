@@ -1,5 +1,5 @@
 import { CaseReducer, PayloadAction } from "@reduxjs/toolkit";
-import { EmbeddedSystemData, HomeState } from "./type";
+import { EmbeddedSystemData, HomeState, QrData } from "./type";
 import { WasteType } from "../constants";
 
 export const updateSensorsDataCase: CaseReducer<
@@ -27,6 +27,20 @@ export const setEmbeddedSystemStateCase: CaseReducer<
         ...state.embeddedSystemData[action.payload.wasteType],
         embeddedSystemState: action.payload.embeddedSystemState,
     };
+};
+
+export const setQrDataCase: CaseReducer<
+    HomeState,
+    PayloadAction<QrData>
+> = (state, action) => {
+    state.qrData = action.payload;
+};
+
+export const setClassifyUserNameCase: CaseReducer<
+    HomeState,
+    PayloadAction<string>
+> = (state, action) => {
+    state.classifyByUserName = action.payload;
 };
 
 export const setErrorMessageCase: CaseReducer<

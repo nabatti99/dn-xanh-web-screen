@@ -1,14 +1,14 @@
 import { Icon } from "@components";
+import { EmbeddedSystemState, WasteType } from "@pages/home/constants";
 import { Badge, Flex, Section, Text } from "@radix-ui/themes";
+import { useAppDispatch, useAppSelector } from "@store";
 import cls from "classnames";
 import { StatusBarProps } from "./type";
-import { EmbeddedSystemState, WasteType } from "@pages/home/constants";
-import { useAppDispatch, useAppSelector } from "@store";
 
-import styles from "./style.module.scss";
 import { AppWebsocket } from "@api/websocket/app-websocket";
+import { setClassifyUserName, setEmbeddedSystemState, setQrData, updateSensorsData } from "@pages/home/redux";
 import { useEffect, useState } from "react";
-import { setEmbeddedSystemState, setErrorMessage, updateSensorsData } from "@pages/home/redux";
+import styles from "./style.module.scss";
 
 export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: StatusBarProps) => {
     const dispatch = useAppDispatch();
@@ -39,11 +39,27 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
                 );
                 break;
 
-            case "ERROR":
+            case "BUILD_QR":
                 dispatch(
-                    setErrorMessage({
-                        errorMessage: data["message"],
+                    setQrData({
+                        isCorrect: data["isCorrect"],
+                        token: data["token"]
                     })
+                )
+                break;
+
+            case "BUILD_QR":
+                dispatch(
+                    setQrData({
+                        isCorrect: data["isCorrect"],
+                        token: data["token"]
+                    })
+                )
+                break;
+
+            case "FINISHED_QR":
+                dispatch(
+                    setClassifyUserName(data["userName"])
                 );
                 break;
 
