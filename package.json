@@ -74,5 +74,5 @@
             }
         ]
     },
-    "packageManager": "yarn@4.2.2"
+    "packageManager": "yarn@4.5.1"
 }
