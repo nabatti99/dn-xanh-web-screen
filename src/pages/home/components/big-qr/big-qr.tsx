@@ -17,7 +17,7 @@ export const BigQr = ({ qrMessage, className, ...props }: BigQrProps) => {
             <Box className={styles["overlay"]} />
             <Flex position="relative" direction="column" align="center" gap="6">
                 <Box asChild className={styles["qr"]}>
-                    <QRCode value={qrMessage} size={256} />
+                    <QRCode value={qrMessage} size={400} />
                 </Box>
                 <Heading align="center" size="4" className={styles["title"]}>
                     QUÉT MÃ TÍCH ĐIỂM XANH

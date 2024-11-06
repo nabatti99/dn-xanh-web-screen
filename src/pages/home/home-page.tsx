@@ -11,7 +11,7 @@ import { EmbeddedSystemState, WasteType } from "./constants";
 
 import styles from "./style.module.scss";
 import { ErrorMessage } from "./components/error-message";
-import { setErrorMessage } from "./redux";
+import { setErrorMessage, setQrData } from "./redux";
 
 enum MessageKey {
     DOOR_OPENED = "DOOR_OPENED",
@@ -39,6 +39,11 @@ export const HomePage = ({}: HomePageProps) => {
         let newMessageKey: MessageKey | undefined = undefined;
         let newQrMessage: string | undefined = undefined;
 
+        if (qrData && !qrData.isCorrect) {
+            dispatch(setErrorMessage({ errorMessage: "Hãy phân loại rác đúng cho lần sau nhé!" }));
+            dispatch(setQrData(undefined));
+        }
+
         Object.values(embeddedSystemData).forEach((state) => {
             switch (state.embeddedSystemState) {
                 case EmbeddedSystemState.OPENING_DOOR:
@@ -52,17 +57,31 @@ export const HomePage = ({}: HomePageProps) => {
 
                 case EmbeddedSystemState.CLAIM_REWARD:
                     if (qrData) {
-                        if (qrData.isCorrect) newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
-                        else dispatch(setErrorMessage({ errorMessage: "Hãy phân loại rác đúng cho lần sau nhé!" }));
-                    } else dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
+                        if (qrData.isCorrect) {
+                            newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
+                            setQrMessage(newQrMessage);
+
+                            setTimeout(() => {
+                                setQrData(undefined);
+                                setQrMessage(undefined);
+                            }, 10000);
+                        }
+                    }
+                    // else {
+                    //     dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
+                    //     dispatch(setQrData(undefined));
+                    // }
                     break;
 
-                case EmbeddedSystemState.FINISHING:
-                    if (classifyByUserName) {
-                        messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
-                        newMessageKey = MessageKey.FINISHING;
-                    } else dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
-                    break;
+                // case EmbeddedSystemState.FINISHING:
+                //     if (classifyByUserName) {
+                //         messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
+                //         newMessageKey = MessageKey.FINISHING;
+                //     } else {
+                //         dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
+                //         dispatch(setQrData(undefined));
+                //     }
+                //     break;
 
                 default:
                     break;
@@ -70,7 +89,7 @@ export const HomePage = ({}: HomePageProps) => {
         });
 
         setMessageKey(newMessageKey);
-        setQrMessage(newQrMessage);
+        // setQrMessage(newQrMessage);
     }, [embeddedSystemData]);
 
     useEffect(() => {

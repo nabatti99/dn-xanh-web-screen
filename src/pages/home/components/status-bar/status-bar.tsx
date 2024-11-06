@@ -9,62 +9,71 @@ import { useEffect, useState } from "react";
 import { StatusBarProps } from "./type";
 
 import styles from "./style.module.scss";
+import { QrData } from "@pages/home/redux/type";
 
 export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: StatusBarProps) => {
     const dispatch = useAppDispatch();
 
     const [appWebsocket, setAppWebsocket] = useState<AppWebsocket>();
+    const isReady = appWebsocket && appWebsocket.ws.readyState === WebSocket.OPEN;
+
     const { embeddedSystemState, height, isDoorOpened } = useAppSelector((state) => state.home.embeddedSystemData[wasteType]);
+    const { qrData } = useAppSelector((state) => state.home);
 
-    const handleWebsocketMessage = (data: Record<string, any>) => {
-        switch (data.type) {
-            case "SENSORS_DATA":
-                dispatch(
-                    updateSensorsData({
-                        wasteType,
-                        data: {
-                            isDoorOpened: Number(data["isDoorOpened"]) === 1,
-                            height: Number(data["height"]),
-                        },
-                    })
-                );
-                break;
+    const createWebsocket = async () => {
+        const handleWebsocketMessage = (data: Record<string, any>) => {
+            switch (data.type) {
+                case "SENSORS_DATA":
+                    dispatch(
+                        updateSensorsData({
+                            wasteType,
+                            data: {
+                                isDoorOpened: Number(data["isDoorOpened"]) === 1,
+                                height: Number(data["height"]),
+                            },
+                        })
+                    );
+                    break;
 
-            case "SET_STATE":
-                dispatch(
-                    setEmbeddedSystemState({
-                        wasteType,
-                        embeddedSystemState: data["state"],
-                    })
-                );
-                break;
+                case "SET_STATE":
+                    dispatch(
+                        setEmbeddedSystemState({
+                            wasteType,
+                            embeddedSystemState: data["state"],
+                        })
+                    );
 
-            case "BUILD_QR":
-                dispatch(
-                    setQrData({
-                        isCorrect: data["isCorrect"],
-                        token: data["token"],
-                    })
-                );
-                break;
+                    // if (data["state"] !== EmbeddedSystemState.CLAIM_REWARD && qrData?.embeddedSystemIP === embeddedSystemIP) dispatch(setQrData(undefined));
 
-            case "FINISHED_QR":
-                dispatch(setClassifyUserName(data["userName"]));
-                break;
+                    break;
 
-            case "ERROR":
-                dispatch(setErrorMessage({ errorMessage: data["message"] }));
-                break;
+                case "BUILD_QR":
+                    dispatch(
+                        setQrData({
+                            embeddedSystemIP,
+                            isCorrect: data["isCorrect"],
+                            token: data["token"],
+                        })
+                    );
+                    break;
 
-            default:
-                break;
-        }
-    };
+                case "FINISHED_QR":
+                    dispatch(setClassifyUserName(data["userName"]));
+                    break;
 
-    useEffect(() => {
-        if (appWebsocket) return;
+                case "ERROR":
+                    dispatch(setErrorMessage({ errorMessage: data["message"] }));
+                    break;
 
-        new AppWebsocket(
+                default:
+                    break;
+            }
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
+
+        console.log(`Connecting websocket to ${embeddedSystemIP}...`);
+        const newAppWebsocket = new AppWebsocket(
             "RecycleEmbeddedSystem",
             `ws://${embeddedSystemIP}/ws`,
             (event) => {
@@ -76,19 +85,39 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
             },
             (event) => {
                 console.log("Close", event);
-                console.log(`Reconnecting websocket to ${embeddedSystemIP}...`);
-                setTimeout(() => {
-                    setAppWebsocket(undefined);
-                }, 1000);
+                console.log(`Closing websocket to ${embeddedSystemIP}...`);
+
+                dispatch(
+                    setEmbeddedSystemState({
+                        wasteType,
+                        embeddedSystemState: EmbeddedSystemState.IDLE,
+                    })
+                );
+
+                if (appWebsocket as any) {
+                    console.log(appWebsocket!.ws);
+                    appWebsocket!.ws.close();
+                }
+
+                setAppWebsocket(undefined);
             },
             (event) => {
                 console.log("Error", event);
             }
         );
 
-        return () => {
-            AppWebsocket.cleanUp();
-        };
+        console.log(newAppWebsocket);
+        setAppWebsocket(newAppWebsocket);
+    };
+
+    useEffect(() => {
+        if (appWebsocket) return;
+
+        createWebsocket();
+
+        // return () => {
+        //     newAppWebsocket.ws.close();
+        // };
     }, [appWebsocket]);
 
     const renderStatus = () => {
@@ -151,7 +180,13 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
     return (
         <Section position="relative" className={cls(styles["embedded-system-status"], wasteStyleMap[wasteType], className)} pt="0" {...props}>
             <Flex direction="column" gap="2">
-                {height < 20 && (
+                {!isReady && (
+                    <Badge color="red" variant="solid" className={styles["badge"]}>
+                        Lỗi Kết Nối
+                    </Badge>
+                )}
+
+                {isReady && height < 20 && (
                     <Badge color="red" variant="solid" className={styles["badge"]}>
                         Đã Đầy
                     </Badge>

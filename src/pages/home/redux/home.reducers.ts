@@ -29,17 +29,11 @@ export const setEmbeddedSystemStateCase: CaseReducer<
     };
 };
 
-export const setQrDataCase: CaseReducer<
-    HomeState,
-    PayloadAction<QrData>
-> = (state, action) => {
+export const setQrDataCase: CaseReducer<HomeState, PayloadAction<QrData | undefined>> = (state, action) => {
     state.qrData = action.payload;
 };
 
-export const setClassifyUserNameCase: CaseReducer<
-    HomeState,
-    PayloadAction<string>
-> = (state, action) => {
+export const setClassifyUserNameCase: CaseReducer<HomeState, PayloadAction<string>> = (state, action) => {
     state.classifyByUserName = action.payload;
 };
 

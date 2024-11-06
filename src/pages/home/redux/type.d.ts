@@ -7,13 +7,14 @@ export type EmbeddedSystemData = {
 };
 
 export type QrData = {
+    embeddedSystemIP: string;
     isCorrect: boolean;
     token: string;
-}
+};
 
 export type HomeState = {
     embeddedSystemData: Record<WasteType, EmbeddedSystemData>;
     errorMessage: string;
-    qrData?: QrData
-    classifyByUserName: string
+    qrData?: QrData;
+    classifyByUserName: string;
 };
