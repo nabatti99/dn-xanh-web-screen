@@ -1,13 +1,13 @@
+import { AppWebsocket } from "@api/websocket/app-websocket";
 import { Icon } from "@components";
 import { EmbeddedSystemState, WasteType } from "@pages/home/constants";
+import { setClassifyUserName, setEmbeddedSystemState, setErrorMessage, setQrData, updateSensorsData } from "@pages/home/redux";
 import { Badge, Flex, Section, Text } from "@radix-ui/themes";
 import { useAppDispatch, useAppSelector } from "@store";
 import cls from "classnames";
+import { useEffect, useState } from "react";
 import { StatusBarProps } from "./type";
 
-import { AppWebsocket } from "@api/websocket/app-websocket";
-import { setClassifyUserName, setEmbeddedSystemState, setQrData, updateSensorsData } from "@pages/home/redux";
-import { useEffect, useState } from "react";
 import styles from "./style.module.scss";
 
 export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: StatusBarProps) => {
@@ -43,24 +43,17 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
                 dispatch(
                     setQrData({
                         isCorrect: data["isCorrect"],
-                        token: data["token"]
+                        token: data["token"],
                     })
-                )
-                break;
-
-            case "BUILD_QR":
-                dispatch(
-                    setQrData({
-                        isCorrect: data["isCorrect"],
-                        token: data["token"]
-                    })
-                )
+                );
                 break;
 
             case "FINISHED_QR":
-                dispatch(
-                    setClassifyUserName(data["userName"])
-                );
+                dispatch(setClassifyUserName(data["userName"]));
+                break;
+
+            case "ERROR":
+                dispatch(setErrorMessage({ errorMessage: data["message"] }));
                 break;
 
             default:
@@ -83,7 +76,10 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
             },
             (event) => {
                 console.log("Close", event);
-                setAppWebsocket(undefined);
+                console.log(`Reconnecting websocket to ${embeddedSystemIP}...`);
+                setTimeout(() => {
+                    setAppWebsocket(undefined);
+                }, 1000);
             },
             (event) => {
                 console.log("Error", event);

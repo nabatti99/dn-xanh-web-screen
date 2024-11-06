@@ -17,19 +17,20 @@ enum MessageKey {
     DOOR_OPENED = "DOOR_OPENED",
     PROCESSING = "PROCESSING",
     FINISHING = "FINISHING",
+    QR_GENERATING = "QR_GENERATING",
 }
 
 const defaultMessageFinishing = "Cảm ơn {userName} đã phân loại rác!";
 const messageMap = {
     [MessageKey.DOOR_OPENED]: "Hãy phân loại rác đúng cách!",
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
-    [MessageKey.FINISHING]: defaultMessageFinishing
+    [MessageKey.QR_GENERATING]: "Đang tạo mã QR...",
+    [MessageKey.FINISHING]: defaultMessageFinishing,
 };
 
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
     const { embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
-
 
     const [messageKey, setMessageKey] = useState<MessageKey>();
     const [qrMessage, setQrMessage] = useState<string>();
@@ -51,7 +52,7 @@ export const HomePage = ({}: HomePageProps) => {
 
                 case EmbeddedSystemState.CLAIM_REWARD:
                     if (qrData) {
-                        if (qrData.isCorrect) newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`
+                        if (qrData.isCorrect) newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
                         else dispatch(setErrorMessage({ errorMessage: "Hãy phân loại rác đúng cho lần sau nhé!" }));
                     } else dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
                     break;
