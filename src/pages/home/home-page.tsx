@@ -12,6 +12,19 @@ import { EmbeddedSystemState, WasteType } from "./constants";
 import styles from "./style.module.scss";
 import { ErrorMessage } from "./components/error-message";
 import { setErrorMessage, setQrData } from "./redux";
+import { VoiceMessage } from "./components/voice-message";
+
+enum VoiceMessageKey {
+    GREETING = "GREETING",
+    THANKS = "THANKS",
+    REMIND = "REMIND",
+}
+
+const voiceMessageMap: Record<VoiceMessageKey, string> = {
+    [VoiceMessageKey.GREETING]: "/voices/greeting.mp3",
+    [VoiceMessageKey.THANKS]: "/voices/thanks.mp3",
+    [VoiceMessageKey.REMIND]: "/voices/remind.mp3",
+};
 
 enum MessageKey {
     DOOR_OPENED = "DOOR_OPENED",
@@ -20,22 +33,24 @@ enum MessageKey {
     QR_GENERATING = "QR_GENERATING",
 }
 
-const defaultMessageFinishing = "Cảm ơn {userName} đã phân loại rác!";
-const messageMap = {
+const messageMap: Record<MessageKey, string> = {
     [MessageKey.DOOR_OPENED]: "Hãy phân loại rác đúng cách!",
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
     [MessageKey.QR_GENERATING]: "Đang tạo mã QR...",
-    [MessageKey.FINISHING]: defaultMessageFinishing,
+    [MessageKey.FINISHING]: "Cảm ơn bạn đã phân loại rác!",
 };
 
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
     const { embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
 
+    const [voiceMessageKey, setVoiceMessageKey] = useState<VoiceMessageKey>();
     const [messageKey, setMessageKey] = useState<MessageKey>();
     const [qrMessage, setQrMessage] = useState<string>();
 
     useEffect(() => {
+        // let newVoiceMessageKey: VoiceMessageKey | undefined = undefined;
+        let newVoiceMessageKey: VoiceMessageKey | undefined = VoiceMessageKey.GREETING;
         let newMessageKey: MessageKey | undefined = undefined;
         let newQrMessage: string | undefined = undefined;
 
@@ -89,6 +104,7 @@ export const HomePage = ({}: HomePageProps) => {
         });
 
         setMessageKey(newMessageKey);
+        setVoiceMessageKey(newVoiceMessageKey);
         // setQrMessage(newQrMessage);
     }, [embeddedSystemData]);
 
@@ -120,6 +136,7 @@ export const HomePage = ({}: HomePageProps) => {
                     <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />
                 </Flex>
 
+                {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} onFinish={() => setVoiceMessageKey(undefined)} />}
                 {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}
                 {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />}
                 {errorMessage && <ErrorMessage position="absolute" top="0" left="0" message={errorMessage} />}
