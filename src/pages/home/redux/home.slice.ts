@@ -1,9 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HomeState } from "./type";
-import { updateSensorsDataCase, setEmbeddedSystemStateCase, setErrorMessageCase, setQrDataCase, setClassifyUserNameCase } from "./home.reducers";
+import {
+    updateSensorsDataCase,
+    setEmbeddedSystemStateCase,
+    setErrorMessageCase,
+    setQrDataCase,
+    setClassifyUserNameCase,
+    updateSensorsFrontDataCase,
+    setEmbeddedSystemFrontStateCase,
+} from "./home.reducers";
 import { EmbeddedSystemState, WasteType } from "../constants";
 
 const initialState: HomeState = {
+    embeddedSystemFrontData: {
+        hasObject: false,
+    },
     embeddedSystemData: {
         [WasteType.RECYCLABLE]: {
             isDoorOpened: false,
@@ -31,16 +42,19 @@ export const homeSlice = createSlice({
     name: "HOME_STATE",
     initialState,
     reducers: {
+        updateSensorsFrontData: updateSensorsFrontDataCase,
+        setEmbeddedSystemFrontState: setEmbeddedSystemFrontStateCase,
         updateSensorsData: updateSensorsDataCase,
         setEmbeddedSystemState: setEmbeddedSystemStateCase,
         setErrorMessage: setErrorMessageCase,
         setQrData: setQrDataCase,
-        setClassifyUserName: setClassifyUserNameCase
+        setClassifyUserName: setClassifyUserNameCase,
     },
 });
 
 // Export actions
-export const { updateSensorsData, setEmbeddedSystemState, setErrorMessage, setQrData, setClassifyUserName } = homeSlice.actions;
+export const { updateSensorsFrontData, setEmbeddedSystemFrontState, updateSensorsData, setEmbeddedSystemState, setErrorMessage, setQrData, setClassifyUserName } =
+    homeSlice.actions;
 
 // Export reducer
 export const homeReducer = homeSlice.reducer;

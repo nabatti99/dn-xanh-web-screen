@@ -13,7 +13,7 @@ export enum EmbeddedSystemState {
     FINISHING = "FINISHING",
 }
 
-export enum FrontEmbeddedSystemState {
+export enum EmbeddedSystemFrontState {
     IDLE = "IDLE",
     COLLECTING_DATA = "COLLECTING_DATA",
     SERVER_PROCESSING = "SERVER_PROCESSING",

@@ -1,4 +1,9 @@
-import { WasteType } from "../constants";
+import { EmbeddedSystemFrontState, EmbeddedSystemState, WasteType } from "../constants";
+
+export type EmbeddedSystemFrontData = {
+    hasObject: boolean;
+    embeddedSystemFrontState?: EmbeddedSystemFrontState;
+};
 
 export type EmbeddedSystemData = {
     isDoorOpened: boolean;
@@ -13,6 +18,7 @@ export type QrData = {
 };
 
 export type HomeState = {
+    embeddedSystemFrontData: EmbeddedSystemFrontData;
     embeddedSystemData: Record<WasteType, EmbeddedSystemData>;
     errorMessage: string;
     qrData?: QrData;

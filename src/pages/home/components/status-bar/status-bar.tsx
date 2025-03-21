@@ -73,7 +73,7 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
         await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
 
         console.log(`Connecting websocket to ${embeddedSystemIP}...`);
-        const newAppWebsocket = new AppWebsocket(
+        const newAppWebsocket = AppWebsocket.getInstance(
             "RecycleEmbeddedSystem",
             `ws://${embeddedSystemIP}/ws`,
             (event) => {
@@ -85,7 +85,7 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
             },
             (event) => {
                 console.log("Close", event);
-                console.log(`Closing websocket to ${embeddedSystemIP}...`);
+                console.log(`Closing Websocket to ${embeddedSystemIP}...`);
 
                 dispatch(
                     setEmbeddedSystemState({
@@ -109,15 +109,14 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
         console.log(newAppWebsocket);
         setAppWebsocket(newAppWebsocket);
 
-        return newAppWebsocket
+        return newAppWebsocket;
     };
 
     useEffect(() => {
         if (appWebsocket) return;
 
         let newAppWebsocket: AppWebsocket | undefined = undefined;
-        createWebsocket()
-        .then(appWebsocket => newAppWebsocket = appWebsocket)
+        createWebsocket().then((appWebsocket) => (newAppWebsocket = appWebsocket));
 
         return () => {
             newAppWebsocket?.ws.close();

@@ -13,6 +13,7 @@ import styles from "./style.module.scss";
 import { ErrorMessage } from "./components/error-message";
 import { setErrorMessage, setQrData } from "./redux";
 import { VoiceMessage } from "./components/voice-message";
+import { useAppWebsocketFront } from "./hooks/useAppWebsocketFront";
 
 enum VoiceMessageKey {
     GREETING = "GREETING",
@@ -55,6 +56,8 @@ const messageMap: Record<MessageKey, string> = {
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
     const { embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
+
+    const appWebsocketFront = useAppWebsocketFront("192.168.137.100");
 
     const [voiceMessageKey, setVoiceMessageKey] = useState<VoiceMessageKey>();
     const [messageKey, setMessageKey] = useState<MessageKey>();
@@ -142,13 +145,13 @@ export const HomePage = ({}: HomePageProps) => {
                     </video>
                 </Box>
 
-                <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
+                {/* <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
                     <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.20" />
                     <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.30" />
                     <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />
-                </Flex>
+                </Flex> */}
 
-                {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} onFinish={() => setVoiceMessageKey(undefined)} />}
+                {/* {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} onFinish={() => setVoiceMessageKey(undefined)} />} */}
                 {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}
                 {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />}
                 {errorMessage && <ErrorMessage position="absolute" top="0" left="0" message={errorMessage} />}

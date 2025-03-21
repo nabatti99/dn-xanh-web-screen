@@ -1,8 +1,8 @@
 export class AppWebsocket {
     public ws: WebSocket;
-    public static listWs: Record<string, WebSocket> = {};
+    public static listAppWs: Record<string, AppWebsocket> = {};
 
-    constructor(
+    private constructor(
         id: string,
         url: string,
         onOpen: (event: Event) => void,
@@ -16,13 +16,31 @@ export class AppWebsocket {
         this.ws.onclose = onClose;
         this.ws.onerror = onError;
 
-        AppWebsocket.listWs[id] = this.ws;
+        AppWebsocket.listAppWs[id] = this;
+    }
+
+    public static getInstance(
+        id: string,
+        url: string,
+        onOpen: (event: Event) => void,
+        onMessage: (event: MessageEvent) => void,
+        onClose: (event: CloseEvent) => void,
+        onError: (event: Event) => void
+    ) {
+        if (AppWebsocket.listAppWs[id]) {
+            const websocket = AppWebsocket.listAppWs[id].ws;
+            if (([WebSocket.CONNECTING, WebSocket.OPEN] as number[]).includes(websocket.readyState)) {
+                return AppWebsocket.listAppWs[id];
+            }
+        }
+
+        return new AppWebsocket(id, url, onOpen, onMessage, onClose, onError);
     }
 
     public static cleanUp() {
-        for (const id in AppWebsocket.listWs) {
-            AppWebsocket.listWs[id].close();
-            delete AppWebsocket.listWs[id];
+        for (const id in AppWebsocket.listAppWs) {
+            AppWebsocket.listAppWs[id].ws.close();
+            delete AppWebsocket.listAppWs[id];
         }
     }
 }

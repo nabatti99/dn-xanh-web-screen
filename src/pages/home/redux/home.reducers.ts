@@ -1,7 +1,30 @@
 import { CaseReducer, PayloadAction } from "@reduxjs/toolkit";
-import { EmbeddedSystemData, HomeState, QrData } from "./type";
-import { WasteType } from "../constants";
+import { EmbeddedSystemData, EmbeddedSystemFrontData, HomeState, QrData } from "./type";
+import { EmbeddedSystemFrontState, EmbeddedSystemState, WasteType } from "../constants";
 
+// Embedded System Front
+export const updateSensorsFrontDataCase: CaseReducer<
+    HomeState,
+    PayloadAction<{
+        data: Pick<EmbeddedSystemFrontData, "hasObject">;
+    }>
+> = (state, action) => {
+    state.embeddedSystemFrontData = {
+        ...state.embeddedSystemFrontData,
+        hasObject: action.payload.data.hasObject,
+    };
+};
+
+export const setEmbeddedSystemFrontStateCase: CaseReducer<
+    HomeState,
+    PayloadAction<{
+        embeddedSystemFrontState: EmbeddedSystemFrontState;
+    }>
+> = (state, action) => {
+    state.embeddedSystemFrontData.embeddedSystemFrontState = action.payload.embeddedSystemFrontState;
+};
+
+// Embedded System Main
 export const updateSensorsDataCase: CaseReducer<
     HomeState,
     PayloadAction<{
@@ -20,7 +43,7 @@ export const setEmbeddedSystemStateCase: CaseReducer<
     HomeState,
     PayloadAction<{
         wasteType: WasteType;
-        embeddedSystemState: EmbeddedSystemData["embeddedSystemState"];
+        embeddedSystemState: EmbeddedSystemState;
     }>
 > = (state, action) => {
     state.embeddedSystemData[action.payload.wasteType] = {
