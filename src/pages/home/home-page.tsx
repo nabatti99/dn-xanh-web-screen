@@ -17,25 +17,37 @@ import { VoiceMessage } from "./components/voice-message";
 enum VoiceMessageKey {
     GREETING = "GREETING",
     THANKS = "THANKS",
-    REMIND = "REMIND",
+    REMIND_ERROR = "REMIND_ERROR",
+    QR = "QR",
+    GREEN_POINT = "GREEN_POINT",
+    WASTE_TYPE_ORGANIC = "WASTE_TYPE_ORGANIC",
+    WASTE_TYPE_RECYCLABLE = "WASTE_TYPE_RECYCLABLE",
+    WASTE_TYPE_NON_RECYCLABLE = "WASTE_TYPE_NON_RECYCLABLE",
 }
 
 const voiceMessageMap: Record<VoiceMessageKey, string> = {
     [VoiceMessageKey.GREETING]: "/voices/greeting.mp3",
     [VoiceMessageKey.THANKS]: "/voices/thanks.mp3",
-    [VoiceMessageKey.REMIND]: "/voices/remind.mp3",
+    [VoiceMessageKey.REMIND_ERROR]: "/voices/remind-error.mp3",
+    [VoiceMessageKey.QR]: "/voices/qr.mp3",
+    [VoiceMessageKey.GREEN_POINT]: "/voices/green-point.mp3",
+    [VoiceMessageKey.WASTE_TYPE_ORGANIC]: "/voices/waste-type-organic.mp3",
+    [VoiceMessageKey.WASTE_TYPE_RECYCLABLE]: "/voices/waste-type-recyclable.mp3",
+    [VoiceMessageKey.WASTE_TYPE_NON_RECYCLABLE]: "/voices/waste-type-non-recyclable.mp3",
 };
 
 enum MessageKey {
-    DOOR_OPENED = "DOOR_OPENED",
+    GREETING = "GREETING",
     PROCESSING = "PROCESSING",
+    WAITING_OPEN_DOOR = "WAITING_OPEN_DOOR",
     FINISHING = "FINISHING",
     QR_GENERATING = "QR_GENERATING",
 }
 
 const messageMap: Record<MessageKey, string> = {
-    [MessageKey.DOOR_OPENED]: "Hãy phân loại rác đúng cách!",
+    [MessageKey.GREETING]: "Hãy phân loại rác đúng cách!",
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
+    [MessageKey.WAITING_OPEN_DOOR]: "Rác này là {wasteType}. Hãy bỏ rác đúng thùng nhé!",
     [MessageKey.QR_GENERATING]: "Đang tạo mã QR...",
     [MessageKey.FINISHING]: "Cảm ơn bạn đã phân loại rác!",
 };
@@ -59,49 +71,49 @@ export const HomePage = ({}: HomePageProps) => {
             dispatch(setQrData(undefined));
         }
 
-        Object.values(embeddedSystemData).forEach((state) => {
-            switch (state.embeddedSystemState) {
-                case EmbeddedSystemState.OPENING_DOOR:
-                    newMessageKey = MessageKey.DOOR_OPENED;
-                    break;
+        // Object.values(embeddedSystemData).forEach((state) => {
+        //     switch (state.embeddedSystemState) {
+        //         case EmbeddedSystemState.OPENING_DOOR:
+        //             newMessageKey = MessageKey.DOOR_OPENED;
+        //             break;
 
-                case EmbeddedSystemState.COLLECTING_DATA:
-                case EmbeddedSystemState.SERVER_PROCESSING:
-                    newMessageKey = MessageKey.PROCESSING;
-                    break;
+        //         case EmbeddedSystemState.COLLECTING_DATA:
+        //         case EmbeddedSystemState.SERVER_PROCESSING:
+        //             newMessageKey = MessageKey.PROCESSING;
+        //             break;
 
-                case EmbeddedSystemState.CLAIM_REWARD:
-                    if (qrData) {
-                        if (qrData.isCorrect) {
-                            newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
-                            setQrMessage(newQrMessage);
+        //         case EmbeddedSystemState.CLAIM_REWARD:
+        //             if (qrData) {
+        //                 if (qrData.isCorrect) {
+        //                     newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
+        //                     setQrMessage(newQrMessage);
 
-                            setTimeout(() => {
-                                setQrData(undefined);
-                                setQrMessage(undefined);
-                            }, 10000);
-                        }
-                    }
-                    // else {
-                    //     dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
-                    //     dispatch(setQrData(undefined));
-                    // }
-                    break;
+        //                     setTimeout(() => {
+        //                         setQrData(undefined);
+        //                         setQrMessage(undefined);
+        //                     }, 10000);
+        //                 }
+        //             }
+        //             // else {
+        //             //     dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
+        //             //     dispatch(setQrData(undefined));
+        //             // }
+        //             break;
 
-                // case EmbeddedSystemState.FINISHING:
-                //     if (classifyByUserName) {
-                //         messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
-                //         newMessageKey = MessageKey.FINISHING;
-                //     } else {
-                //         dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
-                //         dispatch(setQrData(undefined));
-                //     }
-                //     break;
+        //         // case EmbeddedSystemState.FINISHING:
+        //         //     if (classifyByUserName) {
+        //         //         messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
+        //         //         newMessageKey = MessageKey.FINISHING;
+        //         //     } else {
+        //         //         dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
+        //         //         dispatch(setQrData(undefined));
+        //         //     }
+        //         //     break;
 
-                default:
-                    break;
-            }
-        });
+        //         default:
+        //             break;
+        //     }
+        // });
 
         setMessageKey(newMessageKey);
         setVoiceMessageKey(newVoiceMessageKey);

@@ -13,6 +13,14 @@ export enum EmbeddedSystemState {
     FINISHING = "FINISHING",
 }
 
+export enum FrontEmbeddedSystemState {
+    IDLE = "IDLE",
+    COLLECTING_DATA = "COLLECTING_DATA",
+    SERVER_PROCESSING = "SERVER_PROCESSING",
+    WAITING_OPEN_DOOR = "WAITING_OPEN_DOOR",
+    FINISHING = "FINISHING",
+}
+
 export enum WasteType {
     RECYCLABLE = "RECYCLABLE",
     ORGANIC = "ORGANIC",

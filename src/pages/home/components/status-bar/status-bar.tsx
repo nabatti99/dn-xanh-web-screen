@@ -108,16 +108,20 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
 
         console.log(newAppWebsocket);
         setAppWebsocket(newAppWebsocket);
+
+        return newAppWebsocket
     };
 
     useEffect(() => {
         if (appWebsocket) return;
 
-        // createWebsocket();
+        let newAppWebsocket: AppWebsocket | undefined = undefined;
+        createWebsocket()
+        .then(appWebsocket => newAppWebsocket = appWebsocket)
 
-        // return () => {
-        //     newAppWebsocket.ws.close();
-        // };
+        return () => {
+            newAppWebsocket?.ws.close();
+        };
     }, [appWebsocket]);
 
     const renderStatus = () => {
