@@ -19,7 +19,7 @@ export class AppWebsocket {
         AppWebsocket.listAppWs[id] = this;
     }
 
-    public static getInstance(
+    public static async getInstance(
         id: string,
         url: string,
         onOpen: (event: Event) => void,
@@ -29,8 +29,39 @@ export class AppWebsocket {
     ) {
         if (AppWebsocket.listAppWs[id]) {
             const websocket = AppWebsocket.listAppWs[id].ws;
-            if (([WebSocket.CONNECTING, WebSocket.OPEN] as number[]).includes(websocket.readyState)) {
-                return AppWebsocket.listAppWs[id];
+            
+            switch (websocket.readyState) {
+                case WebSocket.CLOSED:
+                    delete AppWebsocket.listAppWs[id];
+                    break;
+
+                case WebSocket.CLOSING:
+                    await new Promise((resolve) => {
+                        let closingIntervalId: NodeJS.Timeout | null = null;
+                        closingIntervalId = setInterval(() => {
+                            if (websocket.readyState === WebSocket.CLOSED) {
+                                clearInterval(closingIntervalId!);
+                                resolve(true);
+                            }
+                        }, 1000);
+                    })
+                    delete AppWebsocket.listAppWs[id];
+                    break;
+
+                case WebSocket.CONNECTING:
+                    await new Promise((resolve) => {
+                        let openingIntervalId: NodeJS.Timeout | null = null;
+                        openingIntervalId = setInterval(() => {
+                            if (websocket.readyState === WebSocket.OPEN) {
+                                clearInterval(openingIntervalId!);
+                                resolve(true);
+                            }
+                        }, 1000);
+                    })
+                    return AppWebsocket.listAppWs[id];
+
+                case WebSocket.OPEN:
+                    return AppWebsocket.listAppWs[id];
             }
         }
 

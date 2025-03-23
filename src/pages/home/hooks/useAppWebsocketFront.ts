@@ -30,8 +30,6 @@ export function useAppWebsocketFront(embeddedSystemFrontIP: string) {
                         })
                     );
 
-                    // if (data["state"] !== EmbeddedSystemState.CLAIM_REWARD && qrData?.embeddedSystemFrontIP === embeddedSystemIP) dispatch(setQrData(undefined));
-
                     break;
 
                 case "ERROR":
@@ -46,7 +44,7 @@ export function useAppWebsocketFront(embeddedSystemFrontIP: string) {
         await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
 
         console.log(`Connecting Websocket Front to ${embeddedSystemFrontIP}...`);
-        const newAppWebsocketFront = AppWebsocket.getInstance(
+        const newAppWebsocketFront = await AppWebsocket.getInstance(
             "EmbeddedSystemFront",
             `ws://${embeddedSystemFrontIP}/ws`,
             (event) => {
@@ -66,14 +64,7 @@ export function useAppWebsocketFront(embeddedSystemFrontIP: string) {
                     })
                 );
 
-                if (appWebsocketFront) {
-                    console.log(appWebsocketFront!.ws);
-                    appWebsocketFront!.ws.close();
-                }
-
-                resetTimeoutRef.current = setTimeout(() => {
-                    setAppWebsocketFront(undefined);
-                }, 2000);
+                setAppWebsocketFront(undefined);
             },
             (event) => {
                 console.log("Error", event);

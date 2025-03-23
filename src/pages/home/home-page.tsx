@@ -7,7 +7,7 @@ import { HomePageProps } from "./type";
 import { useAppDispatch, useAppSelector } from "@store";
 import { BigQr } from "./components/big-qr";
 import { StatusBar } from "./components/status-bar";
-import { EmbeddedSystemState, WasteType } from "./constants";
+import { EmbeddedSystemFrontState, EmbeddedSystemState, WasteType, wasteTypeMap } from "./constants";
 
 import styles from "./style.module.scss";
 import { ErrorMessage } from "./components/error-message";
@@ -42,86 +42,101 @@ enum MessageKey {
     PROCESSING = "PROCESSING",
     WAITING_OPEN_DOOR = "WAITING_OPEN_DOOR",
     FINISHING = "FINISHING",
-    QR_GENERATING = "QR_GENERATING",
+    CLAIM_REWARD = "CLAIM_REWARD",
 }
 
 const messageMap: Record<MessageKey, string> = {
     [MessageKey.GREETING]: "Hãy phân loại rác đúng cách!",
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
     [MessageKey.WAITING_OPEN_DOOR]: "Rác này là {wasteType}. Hãy bỏ rác đúng thùng nhé!",
-    [MessageKey.QR_GENERATING]: "Đang tạo mã QR...",
-    [MessageKey.FINISHING]: "Cảm ơn bạn đã phân loại rác!",
+    [MessageKey.CLAIM_REWARD]: "Hãy quét mã QR để nhận điểm xanh nhé!",
+    [MessageKey.FINISHING]: "Cảm ơn {userName} đã phân loại rác!",
 };
 
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
-    const { embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
+    const { embeddedSystemFrontData, embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
 
     const appWebsocketFront = useAppWebsocketFront("192.168.137.100");
 
     const [voiceMessageKey, setVoiceMessageKey] = useState<VoiceMessageKey>();
-    const [messageKey, setMessageKey] = useState<MessageKey>();
+    const [message, setMessage] = useState<string>();
     const [qrMessage, setQrMessage] = useState<string>();
 
     useEffect(() => {
         // let newVoiceMessageKey: VoiceMessageKey | undefined = undefined;
-        let newVoiceMessageKey: VoiceMessageKey | undefined = VoiceMessageKey.GREETING;
-        let newMessageKey: MessageKey | undefined = undefined;
+        let newVoiceMessageKey: VoiceMessageKey | undefined = undefined;
+        let newMessage: string | undefined = undefined;
         let newQrMessage: string | undefined = undefined;
 
-        if (qrData && !qrData.isCorrect) {
-            dispatch(setErrorMessage({ errorMessage: "Hãy phân loại rác đúng cho lần sau nhé!" }));
-            dispatch(setQrData(undefined));
+        // if (qrData && !qrData.isCorrect) {
+        //     dispatch(setErrorMessage({ errorMessage: "Bạn ơi! Hãy phân loại rác cho lần sau nhé!" }));
+        //     dispatch(setQrData(undefined));
+        // }
+
+        Object.keys(embeddedSystemData).forEach((wasteType: string) => {
+            const state = embeddedSystemData[wasteType as WasteType];
+            switch (state.embeddedSystemState) {
+                case EmbeddedSystemState.WAITING_FOR_OPEN_DOOR:
+                case EmbeddedSystemState.OPENING_DOOR:
+                    newVoiceMessageKey = VoiceMessageKey[`WASTE_TYPE_${wasteType.toUpperCase()}` as keyof typeof VoiceMessageKey];
+                    newMessage = messageMap[MessageKey.WAITING_OPEN_DOOR].replace("{wasteType}", wasteTypeMap[wasteType as WasteType]);
+                    break;
+
+                case EmbeddedSystemState.COLLECTING_DATA:
+                    newMessage = messageMap[MessageKey.PROCESSING];
+                    break;
+
+                case EmbeddedSystemState.CLAIM_REWARD:
+                    newVoiceMessageKey = VoiceMessageKey.QR;
+                    if (qrData && !qrMessage) {
+                        newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
+                        setQrMessage(newQrMessage);
+
+                        setTimeout(() => {
+                            setQrData(undefined);
+                            setQrMessage(undefined);
+                        }, 10000);
+                    }
+                    break;
+
+                case EmbeddedSystemState.REQUESTING_FINISH:
+                    setQrData(undefined);
+                    setQrMessage(undefined);
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        switch (embeddedSystemFrontData.embeddedSystemFrontState) {
+            case EmbeddedSystemFrontState.COLLECTING_DATA:
+                newMessage = messageMap[MessageKey.PROCESSING];
+                break;
+
+            case EmbeddedSystemFrontState.REQUESTING_OPEN_DOOR:
+            case EmbeddedSystemFrontState.WAITING_ESP32_MAIN:
+                break;
+
+            case EmbeddedSystemFrontState.FINISHING:
+                if (classifyByUserName) {
+                    newVoiceMessageKey = VoiceMessageKey.THANKS;
+                    newMessage = messageMap[MessageKey.FINISHING].replace("{userName}", classifyByUserName);
+                } else {
+                    dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
+                    dispatch(setQrData(undefined));
+                }
+                break;
+
+            default:
+                break;
         }
 
-        // Object.values(embeddedSystemData).forEach((state) => {
-        //     switch (state.embeddedSystemState) {
-        //         case EmbeddedSystemState.OPENING_DOOR:
-        //             newMessageKey = MessageKey.DOOR_OPENED;
-        //             break;
-
-        //         case EmbeddedSystemState.COLLECTING_DATA:
-        //         case EmbeddedSystemState.SERVER_PROCESSING:
-        //             newMessageKey = MessageKey.PROCESSING;
-        //             break;
-
-        //         case EmbeddedSystemState.CLAIM_REWARD:
-        //             if (qrData) {
-        //                 if (qrData.isCorrect) {
-        //                     newQrMessage = `${process.env.REACT_APP_API_FE_BASE_URL}/claim-reward?token=${qrData.token}`;
-        //                     setQrMessage(newQrMessage);
-
-        //                     setTimeout(() => {
-        //                         setQrData(undefined);
-        //                         setQrMessage(undefined);
-        //                     }, 10000);
-        //                 }
-        //             }
-        //             // else {
-        //             //     dispatch(setErrorMessage({ errorMessage: "Không tìm thấy mã QR" }));
-        //             //     dispatch(setQrData(undefined));
-        //             // }
-        //             break;
-
-        //         // case EmbeddedSystemState.FINISHING:
-        //         //     if (classifyByUserName) {
-        //         //         messageMap[MessageKey.FINISHING] = defaultMessageFinishing.replace("{userName}", classifyByUserName);
-        //         //         newMessageKey = MessageKey.FINISHING;
-        //         //     } else {
-        //         //         dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
-        //         //         dispatch(setQrData(undefined));
-        //         //     }
-        //         //     break;
-
-        //         default:
-        //             break;
-        //     }
-        // });
-
-        setMessageKey(newMessageKey);
+        setMessage(newMessage);
         setVoiceMessageKey(newVoiceMessageKey);
         // setQrMessage(newQrMessage);
-    }, [embeddedSystemData]);
+    }, [embeddedSystemData, embeddedSystemFrontData]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -145,17 +160,17 @@ export const HomePage = ({}: HomePageProps) => {
                     </video>
                 </Box>
 
-                {/* <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
-                    <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.20" />
-                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.30" />
-                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />
-                </Flex> */}
+                <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
+                    {/* <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" /> */}
+                    <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.30" />
+                    {/* <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" /> */}    
+                </Flex>
 
-                {/* {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} onFinish={() => setVoiceMessageKey(undefined)} />} */}
-                {messageKey && <BigMessage position="absolute" top="0" left="0" message={messageMap[messageKey]} onFinish={() => setMessageKey(undefined)} />}
+                {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} />}
+                {message && <BigMessage position="absolute" top="0" left="0" message={message} onFinish={() => setMessage(undefined)} />}
                 {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />}
                 {errorMessage && <ErrorMessage position="absolute" top="0" left="0" message={errorMessage} />}
-                {/* <BigQr position="absolute" top="0" left="0" qrMessage={"12312312"} /> */}
+                {/* <BigMessage position="absolute" top="0" left="0" message={messageMap[MessageKey.FINISHING]} onFinish={() => setMessage(undefined)} /> */}
             </Flex>
 
             <Seo title="Home" />

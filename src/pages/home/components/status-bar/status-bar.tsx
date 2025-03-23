@@ -57,7 +57,7 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
                     );
                     break;
 
-                case "FINISHED_QR":
+                case "CLAIMED_REWARD":
                     dispatch(setClassifyUserName(data["userName"]));
                     break;
 
@@ -73,7 +73,7 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
         await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
 
         console.log(`Connecting websocket to ${embeddedSystemIP}...`);
-        const newAppWebsocket = AppWebsocket.getInstance(
+        const newAppWebsocket = await AppWebsocket.getInstance(
             "RecycleEmbeddedSystem",
             `ws://${embeddedSystemIP}/ws`,
             (event) => {
@@ -93,11 +93,6 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
                         embeddedSystemState: EmbeddedSystemState.IDLE,
                     })
                 );
-
-                if (appWebsocket as any) {
-                    console.log(appWebsocket!.ws);
-                    appWebsocket!.ws.close();
-                }
 
                 setAppWebsocket(undefined);
             },
@@ -142,7 +137,6 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
                 );
 
             case EmbeddedSystemState.COLLECTING_DATA:
-            case EmbeddedSystemState.SERVER_PROCESSING:
                 return (
                     <>
                         <Icon ri="ri-run-fill" />
@@ -169,14 +163,14 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
     };
 
     const wasteStyleMap: Record<WasteType, any> = {
-        [WasteType.RECYCLABLE]: styles["recycle"],
         [WasteType.ORGANIC]: styles["organic"],
+        [WasteType.RECYCLABLE]: styles["recycle"],
         [WasteType.NON_RECYCLABLE]: styles["non-recycle"],
     };
 
     const wasteNameMap: Record<WasteType, string> = {
-        [WasteType.RECYCLABLE]: "RÁC TÁI CHẾ",
         [WasteType.ORGANIC]: "RÁC HỮU CƠ",
+        [WasteType.RECYCLABLE]: "RÁC TÁI CHẾ",
         [WasteType.NON_RECYCLABLE]: "RÁC VÔ CƠ",
     };
 

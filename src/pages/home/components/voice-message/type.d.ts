@@ -1,4 +1,4 @@
 export type VoiceMessageProps = {
-    voice?: string;
+    voice: string;
     onFinish?: () => void;
 };
