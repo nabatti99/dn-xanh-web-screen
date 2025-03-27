@@ -70,11 +70,9 @@ export const StatusBar = ({ embeddedSystemIP, wasteType, className, ...props }: 
             }
         };
 
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
-
         console.log(`Connecting websocket to ${embeddedSystemIP}...`);
         const newAppWebsocket = await AppWebsocket.getInstance(
-            "RecycleEmbeddedSystem",
+            `RecycleEmbeddedSystem_${wasteType}`,
             `ws://${embeddedSystemIP}/ws`,
             (event) => {
                 console.log("Connected", event);

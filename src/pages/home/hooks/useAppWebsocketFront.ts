@@ -41,8 +41,6 @@ export function useAppWebsocketFront(embeddedSystemFrontIP: string) {
             }
         };
 
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
-
         console.log(`Connecting Websocket Front to ${embeddedSystemFrontIP}...`);
         const newAppWebsocketFront = await AppWebsocket.getInstance(
             "EmbeddedSystemFront",

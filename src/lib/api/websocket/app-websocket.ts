@@ -10,6 +10,7 @@ export class AppWebsocket {
         onClose: (event: CloseEvent) => void,
         onError: (event: Event) => void
     ) {
+        
         this.ws = new WebSocket(url);
         this.ws.onopen = onOpen;
         this.ws.onmessage = onMessage;
@@ -29,7 +30,7 @@ export class AppWebsocket {
     ) {
         if (AppWebsocket.listAppWs[id]) {
             const websocket = AppWebsocket.listAppWs[id].ws;
-            
+
             switch (websocket.readyState) {
                 case WebSocket.CLOSED:
                     delete AppWebsocket.listAppWs[id];
@@ -44,9 +45,10 @@ export class AppWebsocket {
                                 resolve(true);
                             }
                         }, 1000);
-                    })
+                    });
                     delete AppWebsocket.listAppWs[id];
                     break;
+                    // return AppWebsocket.listAppWs[id];
 
                 case WebSocket.CONNECTING:
                     await new Promise((resolve) => {
@@ -57,7 +59,7 @@ export class AppWebsocket {
                                 resolve(true);
                             }
                         }, 1000);
-                    })
+                    });
                     return AppWebsocket.listAppWs[id];
 
                 case WebSocket.OPEN:

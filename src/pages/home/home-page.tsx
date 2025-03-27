@@ -161,9 +161,9 @@ export const HomePage = ({}: HomePageProps) => {
                 </Box>
 
                 <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
-                    {/* <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" /> */}
+                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" />
                     <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.30" />
-                    {/* <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" /> */}    
+                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />    
                 </Flex>
 
                 {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} />}
