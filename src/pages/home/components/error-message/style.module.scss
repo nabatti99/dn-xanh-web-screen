@@ -26,6 +26,7 @@
     .title {
         position: relative;
         --heading-letter-spacing: 0.16em;
+        --line-height: var(--line-height-9);
         color: var(--accent-1);
         text-transform: uppercase;
     }

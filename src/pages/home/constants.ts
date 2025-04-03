@@ -9,7 +9,8 @@ export enum EmbeddedSystemFrontState {
     COLLECTING_DATA = "COLLECTING_DATA",
     REQUESTING_OPEN_DOOR = "REQUESTING_OPEN_DOOR",
     WAITING_ESP32_MAIN = "WAITING_ESP32_MAIN",
-    FINISHING = "FINISHING",
+    REMINDING = "REMINDING",
+    THANKS = "THANKS",
 }
 
 export enum EmbeddedSystemState {

@@ -6,8 +6,10 @@ export const VoiceMessage = ({ voice, onFinish = () => {}, ...props }: VoiceMess
     const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
-        if (audioSrcRef.current === voice) return;
-        audioSrcRef.current = voice;
+        // if (audioSrcRef.current === voice) return;
+        // audioSrcRef.current = voice;
+
+        // if (audioRef.current?.played)
 
         audioRef.current?.play().catch((error) => {
             console.error("Error playing audio:", error);

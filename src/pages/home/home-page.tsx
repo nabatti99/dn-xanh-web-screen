@@ -18,7 +18,7 @@ import { useAppWebsocketFront } from "./hooks/useAppWebsocketFront";
 enum VoiceMessageKey {
     GREETING = "GREETING",
     THANKS = "THANKS",
-    REMIND_ERROR = "REMIND_ERROR",
+    REMINDING = "REMINDING",
     QR = "QR",
     GREEN_POINT = "GREEN_POINT",
     WASTE_TYPE_ORGANIC = "WASTE_TYPE_ORGANIC",
@@ -29,7 +29,7 @@ enum VoiceMessageKey {
 const voiceMessageMap: Record<VoiceMessageKey, string> = {
     [VoiceMessageKey.GREETING]: "/voices/greeting.mp3",
     [VoiceMessageKey.THANKS]: "/voices/thanks.mp3",
-    [VoiceMessageKey.REMIND_ERROR]: "/voices/remind-error.mp3",
+    [VoiceMessageKey.REMINDING]: "/voices/remind.mp3",
     [VoiceMessageKey.QR]: "/voices/qr.mp3",
     [VoiceMessageKey.GREEN_POINT]: "/voices/green-point.mp3",
     [VoiceMessageKey.WASTE_TYPE_ORGANIC]: "/voices/waste-type-organic.mp3",
@@ -41,7 +41,8 @@ enum MessageKey {
     GREETING = "GREETING",
     PROCESSING = "PROCESSING",
     WAITING_OPEN_DOOR = "WAITING_OPEN_DOOR",
-    FINISHING = "FINISHING",
+    REMINDING = "REMINDING",
+    THANKS = "THANKS",
     CLAIM_REWARD = "CLAIM_REWARD",
 }
 
@@ -50,14 +51,15 @@ const messageMap: Record<MessageKey, string> = {
     [MessageKey.PROCESSING]: "Đang xử lý...Bạn chờ chút nhé!",
     [MessageKey.WAITING_OPEN_DOOR]: "Rác này là {wasteType}. Hãy bỏ rác đúng thùng nhé!",
     [MessageKey.CLAIM_REWARD]: "Hãy quét mã QR để nhận điểm xanh nhé!",
-    [MessageKey.FINISHING]: "Cảm ơn {userName} đã phân loại rác!",
+    [MessageKey.REMINDING]: "Bạn ơi! Hãy phân loại rác cho lần sau nhé!",
+    [MessageKey.THANKS]: "Cảm ơn {userName} đã phân loại rác!",
 };
 
 export const HomePage = ({}: HomePageProps) => {
     const dispatch = useAppDispatch();
     const { embeddedSystemFrontData, embeddedSystemData, qrData, errorMessage, classifyByUserName } = useAppSelector((state) => state.home);
 
-    const appWebsocketFront = useAppWebsocketFront("192.168.137.100");
+    const appWebsocketFront = useAppWebsocketFront("192.168.100.100");
 
     const [voiceMessageKey, setVoiceMessageKey] = useState<VoiceMessageKey>();
     const [message, setMessage] = useState<string>();
@@ -119,10 +121,15 @@ export const HomePage = ({}: HomePageProps) => {
             case EmbeddedSystemFrontState.WAITING_ESP32_MAIN:
                 break;
 
-            case EmbeddedSystemFrontState.FINISHING:
+            case EmbeddedSystemFrontState.REMINDING:
+                newVoiceMessageKey = VoiceMessageKey.REMINDING;
+                dispatch(setErrorMessage({ errorMessage: messageMap[MessageKey.REMINDING] }));
+                break;
+
+            case EmbeddedSystemFrontState.THANKS:
                 if (classifyByUserName) {
                     newVoiceMessageKey = VoiceMessageKey.THANKS;
-                    newMessage = messageMap[MessageKey.FINISHING].replace("{userName}", classifyByUserName);
+                    newMessage = messageMap[MessageKey.THANKS].replace("{userName}", classifyByUserName);
                 } else {
                     dispatch(setErrorMessage({ errorMessage: "Không tìm thấy thông tin người tích điểm" }));
                     dispatch(setQrData(undefined));
@@ -139,6 +146,9 @@ export const HomePage = ({}: HomePageProps) => {
     }, [embeddedSystemData, embeddedSystemFrontData]);
 
     useEffect(() => {
+        setQrData(undefined);
+        setQrMessage(undefined);
+
         const timeoutId = setTimeout(() => {
             dispatch(setErrorMessage({ errorMessage: "" }));
         }, 5000);
@@ -161,16 +171,16 @@ export const HomePage = ({}: HomePageProps) => {
                 </Box>
 
                 <Flex direction="column" justify="center" gap="6" className={styles["status-bar-container"]}>
-                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.137.20" />
-                    <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.137.30" />
-                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.137.40" />    
+                    <StatusBar wasteType={WasteType.ORGANIC} embeddedSystemIP="192.168.100.20" />
+                    <StatusBar wasteType={WasteType.RECYCLABLE} embeddedSystemIP="192.168.100.30" />
+                    <StatusBar wasteType={WasteType.NON_RECYCLABLE} embeddedSystemIP="192.168.100.40" />    
                 </Flex>
 
                 {voiceMessageKey && <VoiceMessage voice={voiceMessageMap[voiceMessageKey]} />}
                 {message && <BigMessage position="absolute" top="0" left="0" message={message} onFinish={() => setMessage(undefined)} />}
                 {qrMessage && <BigQr position="absolute" top="0" left="0" qrMessage={qrMessage} />}
                 {errorMessage && <ErrorMessage position="absolute" top="0" left="0" message={errorMessage} />}
-                {/* <BigMessage position="absolute" top="0" left="0" message={messageMap[MessageKey.FINISHING]} onFinish={() => setMessage(undefined)} /> */}
+                {/* <BigMessage position="absolute" top="0" left="0" message={messageMap[MessageKey.THANKS]} onFinish={() => setMessage(undefined)} /> */}
             </Flex>
 
             <Seo title="Home" />
